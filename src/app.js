@@ -15,11 +15,23 @@ export function createApp(db) {
   app.post("/api/tasks", (req, res) => {
     const title = typeof req.body?.title === "string" ? req.body.title.trim() : "";
     if (!title) return res.status(400).json({ error: "title is required" });
-    res.status(201).json(addTask(db, title));
+    const raw = req.body?.nickname;
+    if (raw !== undefined && raw !== null && typeof raw !== "string") {
+      return res.status(400).json({ error: "nickname must be a string" });
+    }
+    const nickname = typeof raw === "string" && raw.trim() ? raw.trim() : null;
+    res.status(201).json(addTask(db, title, nickname));
   });
 
   app.patch("/api/tasks/:id", (req, res) => {
-    const task = updateTask(db, Number(req.params.id), req.body ?? {});
+    const body = { ...(req.body ?? {}) };
+    if (body.nickname !== undefined && body.nickname !== null) {
+      if (typeof body.nickname !== "string") {
+        return res.status(400).json({ error: "nickname must be a string" });
+      }
+      body.nickname = body.nickname.trim() || null;
+    }
+    const task = updateTask(db, Number(req.params.id), body);
     if (!task) return res.status(404).json({ error: "not found" });
     res.json(task);
   });

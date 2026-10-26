@@ -11,6 +11,7 @@ main {
 }
 form {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   align-items: center;
   margin-bottom: 16px;
@@ -32,4 +33,12 @@ li {
 }
 li span {
   flex: 1;
+}
+.due {
+  font-size: 0.85em;
+  color: #5c5a52;
+}
+#error {
+  color: #b00020;
+  margin: 0 0 12px;
 }

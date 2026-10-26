@@ -2,6 +2,13 @@ const list = document.querySelector("#task-list");
 const empty = document.querySelector("#empty");
 const form = document.querySelector("#add-form");
 const input = document.querySelector("#new-title");
+const dueInput = document.querySelector("#new-due");
+const errorBox = document.querySelector("#error");
+
+function showError(message) {
+  errorBox.textContent = message ?? "";
+  errorBox.hidden = !message;
+}
 
 async function api(path, options) {
   const res = await fetch(path, { headers: { "Content-Type": "application/json" }, ...options });
@@ -30,7 +37,15 @@ function render(tasks) {
         await api(`/api/tasks/${task.id}`, { method: "DELETE" });
         await refresh();
       });
-      li.append(box, text, remove);
+      li.append(box, text);
+      if (task.due_date) {
+        const due = document.createElement("time");
+        due.className = "due";
+        due.dateTime = task.due_date;
+        due.textContent = task.due_date;
+        li.append(due);
+      }
+      li.append(remove);
       return li;
     }),
   );
@@ -43,9 +58,17 @@ async function refresh() {
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
-  await api("/api/tasks", { method: "POST", body: JSON.stringify({ title: input.value }) });
-  input.value = "";
-  await refresh();
+  const body = { title: input.value };
+  if (dueInput.value) body.due_date = dueInput.value;
+  try {
+    await api("/api/tasks", { method: "POST", body: JSON.stringify(body) });
+    showError("");
+    input.value = "";
+    dueInput.value = "";
+    await refresh();
+  } catch (err) {
+    showError(err.message);
+  }
 });
 
 refresh();

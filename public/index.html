@@ -12,8 +12,11 @@
       <form id="add-form">
         <label for="new-title">New task</label>
         <input id="new-title" name="title" autocomplete="off" required />
+        <label for="new-due">Due date (optional)</label>
+        <input id="new-due" name="due_date" type="date" />
         <button type="submit">Add</button>
       </form>
+      <p id="error" role="alert" hidden></p>
       <ul id="task-list" aria-label="Tasks"></ul>
       <p id="empty" hidden>No tasks yet.</p>
     </main>

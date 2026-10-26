@@ -2,6 +2,8 @@ const list = document.querySelector("#task-list");
 const empty = document.querySelector("#empty");
 const form = document.querySelector("#add-form");
 const input = document.querySelector("#new-title");
+const dateInput = document.querySelector("#new-start-date");
+const formError = document.querySelector("#form-error");
 
 async function api(path, options) {
   const res = await fetch(path, { headers: { "Content-Type": "application/json" }, ...options });
@@ -30,7 +32,15 @@ function render(tasks) {
         await api(`/api/tasks/${task.id}`, { method: "DELETE" });
         await refresh();
       });
-      li.append(box, text, remove);
+      li.append(box, text);
+      if (task.start_date) {
+        const date = document.createElement("time");
+        date.className = "start-date";
+        date.dateTime = task.start_date;
+        date.textContent = task.start_date;
+        li.append(date);
+      }
+      li.append(remove);
       return li;
     }),
   );
@@ -43,8 +53,18 @@ async function refresh() {
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
-  await api("/api/tasks", { method: "POST", body: JSON.stringify({ title: input.value }) });
+  formError.hidden = true;
+  const body = { title: input.value };
+  if (dateInput.value) body.start_date = dateInput.value;
+  try {
+    await api("/api/tasks", { method: "POST", body: JSON.stringify(body) });
+  } catch (err) {
+    formError.textContent = err.message;
+    formError.hidden = false;
+    return;
+  }
   input.value = "";
+  dateInput.value = "";
   await refresh();
 });
 

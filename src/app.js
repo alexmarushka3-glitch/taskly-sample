@@ -4,6 +4,14 @@ import { addTask, deleteTask, listTasks, updateTask } from "./db.js";
 
 const publicDir = fileURLToPath(new URL("../public", import.meta.url));
 
+/** Accept null/undefined or a real calendar date as YYYY-MM-DD. */
+function validateDueDate(value) {
+  if (value === null || value === undefined) return true;
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const d = new Date(`${value}T00:00:00Z`);
+  return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === value;
+}
+
 /** Build the Express app around a database, so tests can use an in-memory one. */
 export function createApp(db) {
   const app = express();
@@ -15,11 +23,15 @@ export function createApp(db) {
   app.post("/api/tasks", (req, res) => {
     const title = typeof req.body?.title === "string" ? req.body.title.trim() : "";
     if (!title) return res.status(400).json({ error: "title is required" });
-    res.status(201).json(addTask(db, title));
+    const due_date = req.body?.due_date;
+    if (!validateDueDate(due_date)) return res.status(400).json({ error: "due_date must be YYYY-MM-DD" });
+    res.status(201).json(addTask(db, title, due_date ?? null));
   });
 
   app.patch("/api/tasks/:id", (req, res) => {
-    const task = updateTask(db, Number(req.params.id), req.body ?? {});
+    const body = req.body ?? {};
+    if (!validateDueDate(body.due_date)) return res.status(400).json({ error: "due_date must be YYYY-MM-DD" });
+    const task = updateTask(db, Number(req.params.id), body);
     if (!task) return res.status(404).json({ error: "not found" });
     res.json(task);
   });

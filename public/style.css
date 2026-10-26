@@ -19,6 +19,13 @@ form input {
   flex: 1;
   padding: 8px 10px;
 }
+form input[type="date"] {
+  flex: 0 0 auto;
+}
+#error {
+  color: #a31919;
+  margin: 0 0 12px;
+}
 ul {
   list-style: none;
   padding: 0;
@@ -30,6 +37,10 @@ li {
   padding: 8px 0;
   border-bottom: 1px solid #ddd9cf;
 }
-li span {
+li .title {
   flex: 1;
+}
+li .due {
+  font-size: 0.85em;
+  color: #6b6860;
 }

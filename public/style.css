@@ -13,11 +13,16 @@ form {
   display: flex;
   gap: 8px;
   align-items: center;
+  flex-wrap: wrap;
   margin-bottom: 16px;
 }
 form input {
   flex: 1;
   padding: 8px 10px;
+}
+#error {
+  color: #b00020;
+  margin: 0 0 12px;
 }
 ul {
   list-style: none;
@@ -32,4 +37,9 @@ li {
 }
 li span {
   flex: 1;
+}
+li span.start-date {
+  flex: none;
+  font-size: 0.85em;
+  color: #6b6860;
 }

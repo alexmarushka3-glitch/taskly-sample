@@ -1,6 +1,6 @@
 import express from "express";
 import { fileURLToPath } from "node:url";
-import { addTask, deleteTask, listTasks, updateTask } from "./db.js";
+import { addTask, deleteTask, listTasks, parseStartDate, updateTask } from "./db.js";
 
 const publicDir = fileURLToPath(new URL("../public", import.meta.url));
 
@@ -15,11 +15,20 @@ export function createApp(db) {
   app.post("/api/tasks", (req, res) => {
     const title = typeof req.body?.title === "string" ? req.body.title.trim() : "";
     if (!title) return res.status(400).json({ error: "title is required" });
-    res.status(201).json(addTask(db, title));
+    const date = parseStartDate(req.body?.start_date);
+    if (date.error) return res.status(400).json({ error: date.error });
+    res.status(201).json(addTask(db, title, date.value));
   });
 
   app.patch("/api/tasks/:id", (req, res) => {
-    const task = updateTask(db, Number(req.params.id), req.body ?? {});
+    const body = req.body ?? {};
+    const fields = { ...body };
+    if ("start_date" in body) {
+      const date = parseStartDate(body.start_date);
+      if (date.error) return res.status(400).json({ error: date.error });
+      fields.start_date = date.value;
+    }
+    const task = updateTask(db, Number(req.params.id), fields);
     if (!task) return res.status(404).json({ error: "not found" });
     res.json(task);
   });

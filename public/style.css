@@ -33,3 +33,23 @@ li {
 li span {
   flex: 1;
 }
+li input[type="checkbox"] {
+  flex: none;
+}
+#bulk-bar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+#bulk-skill:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+#status {
+  margin: 0;
+  font-size: 0.9rem;
+}
+#status.error {
+  color: #b00020;
+}

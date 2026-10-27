@@ -49,4 +49,40 @@ describe("tasks API", () => {
     assert.equal((await json("/api/tasks/999", "PATCH", { done: true })).status, 404);
     assert.equal((await json("/api/tasks/999", "DELETE")).status, 404);
   });
+
+  describe("bulk-skill", () => {
+    it("returns a result per submitted task", async () => {
+      const a = await (await json("/api/tasks", "POST", { title: "a" })).json();
+      const b = await (await json("/api/tasks", "POST", { title: "b" })).json();
+      const res = await json("/api/tasks/bulk-skill", "POST", { ids: [a.id, b.id] });
+      assert.equal(res.status, 200);
+      assert.deepEqual(await res.json(), {
+        processed: 2,
+        results: [
+          { id: a.id, status: "ok" },
+          { id: b.id, status: "ok" },
+        ],
+      });
+    });
+
+    it("rejects an empty list", async () => {
+      assert.equal((await json("/api/tasks/bulk-skill", "POST", { ids: [] })).status, 400);
+    });
+
+    it("rejects a non-array or non-integer ids", async () => {
+      assert.equal((await json("/api/tasks/bulk-skill", "POST", { ids: "1" })).status, 400);
+      assert.equal((await json("/api/tasks/bulk-skill", "POST", {})).status, 400);
+      assert.equal((await json("/api/tasks/bulk-skill", "POST", { ids: [1, "x"] })).status, 400);
+    });
+
+    it("returns 404 naming unknown ids and applies nothing", async () => {
+      const t = await (await json("/api/tasks", "POST", { title: "c" })).json();
+      const res = await json("/api/tasks/bulk-skill", "POST", { ids: [t.id, 9999] });
+      assert.equal(res.status, 404);
+      const body = await res.json();
+      assert.match(body.error, /9999/);
+      assert.equal(body.results, undefined);
+      assert.equal(body.processed, undefined);
+    });
+  });
 });

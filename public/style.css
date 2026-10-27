@@ -33,3 +33,21 @@ li {
 li span {
   flex: 1;
 }
+.toolbar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.error {
+  color: #b00020;
+}
+#results {
+  background: #fff;
+  border: 1px solid #ddd9cf;
+  border-radius: 6px;
+  padding: 0 12px 8px;
+  margin-bottom: 16px;
+}
+#results h2 {
+  font-size: 1rem;
+}

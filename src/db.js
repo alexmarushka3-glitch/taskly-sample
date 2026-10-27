@@ -20,6 +20,13 @@ export function listTasks(db) {
   return db.prepare("SELECT * FROM tasks ORDER BY created_at DESC, id DESC").all();
 }
 
+/** Fetch the tasks whose ids exist, in one query. Missing ids are simply absent. */
+export function getTasksByIds(db, ids) {
+  if (!ids.length) return [];
+  const placeholders = ids.map(() => "?").join(", ");
+  return db.prepare(`SELECT * FROM tasks WHERE id IN (${placeholders})`).all(...ids);
+}
+
 export function addTask(db, title) {
   const created_at = new Date().toISOString();
   const { lastInsertRowid } = db.prepare("INSERT INTO tasks (title, done, created_at) VALUES (?, 0, ?)").run(title, created_at);

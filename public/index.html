@@ -14,6 +14,14 @@
         <input id="new-title" name="title" autocomplete="off" required />
         <button type="submit">Add</button>
       </form>
+      <div id="toolbar" class="toolbar">
+        <button type="button" id="search-ai" disabled>Search AI</button>
+      </div>
+      <p id="search-error" class="error" role="alert" hidden></p>
+      <section id="results" aria-label="Search results" hidden>
+        <h2>Results</h2>
+        <ul id="results-list"></ul>
+      </section>
       <ul id="task-list" aria-label="Tasks"></ul>
       <p id="empty" hidden>No tasks yet.</p>
     </main>

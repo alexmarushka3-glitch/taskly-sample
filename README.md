@@ -1,6 +1,6 @@
 # taskly-sample
 
-A tiny task tracker: Express API, SQLite (Node's built-in `node:sqlite`), and a plain JavaScript page. It is the sample app that [Foundry](https://foundry-portfolio.vercel.app) changes. Pull requests here are opened by Foundry's agents for visitors of that site, and are closed automatically after a day.
+A tiny task tracker: Express API, SQLite (Node's built-in `node:sqlite`), and a plain JavaScript page. It is the sample app that [Foundry](https://foundry-portfolio.vercel.app) changes. Pull requests here are opened by Foundry's agents for visitors of that site, and are closed automatically after a day, unless they carry the `keep-open` label.
 
 ## Run it
 

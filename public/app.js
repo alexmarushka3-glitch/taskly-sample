@@ -2,6 +2,13 @@ const list = document.querySelector("#task-list");
 const empty = document.querySelector("#empty");
 const form = document.querySelector("#add-form");
 const input = document.querySelector("#new-title");
+const dueInput = document.querySelector("#new-due");
+const errorBox = document.querySelector("#error");
+
+function showError(message) {
+  errorBox.textContent = message ?? "";
+  errorBox.hidden = !message;
+}
 
 async function api(path, options) {
   const res = await fetch(path, { headers: { "Content-Type": "application/json" }, ...options });
@@ -18,8 +25,13 @@ function render(tasks) {
       box.checked = Boolean(task.done);
       box.setAttribute("aria-label", `Done: ${task.title}`);
       box.addEventListener("change", async () => {
-        await api(`/api/tasks/${task.id}`, { method: "PATCH", body: JSON.stringify({ done: box.checked }) });
-        await refresh();
+        try {
+          await api(`/api/tasks/${task.id}`, { method: "PATCH", body: JSON.stringify({ done: box.checked }) });
+          showError("");
+          await refresh();
+        } catch (err) {
+          showError(err.message);
+        }
       });
       const text = document.createElement("span");
       text.textContent = task.title;
@@ -27,10 +39,22 @@ function render(tasks) {
       remove.type = "button";
       remove.textContent = "Delete";
       remove.addEventListener("click", async () => {
-        await api(`/api/tasks/${task.id}`, { method: "DELETE" });
-        await refresh();
+        try {
+          await api(`/api/tasks/${task.id}`, { method: "DELETE" });
+          showError("");
+          await refresh();
+        } catch (err) {
+          showError(err.message);
+        }
       });
-      li.append(box, text, remove);
+      li.append(box, text);
+      if (task.dueDate) {
+        const due = document.createElement("span");
+        due.className = "due";
+        due.textContent = task.dueDate;
+        li.append(due);
+      }
+      li.append(remove);
       return li;
     }),
   );
@@ -38,14 +62,27 @@ function render(tasks) {
 }
 
 async function refresh() {
-  render(await api("/api/tasks"));
+  try {
+    render(await api("/api/tasks"));
+  } catch (err) {
+    showError(err.message);
+  }
 }
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
-  await api("/api/tasks", { method: "POST", body: JSON.stringify({ title: input.value }) });
-  input.value = "";
-  await refresh();
+  try {
+    await api("/api/tasks", {
+      method: "POST",
+      body: JSON.stringify({ title: input.value, dueDate: dueInput.value || null }),
+    });
+    input.value = "";
+    dueInput.value = "";
+    showError("");
+    await refresh();
+  } catch (err) {
+    showError(err.message);
+  }
 });
 
 refresh();

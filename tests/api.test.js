@@ -49,4 +49,32 @@ describe("tasks API", () => {
     assert.equal((await json("/api/tasks/999", "PATCH", { done: true })).status, 404);
     assert.equal((await json("/api/tasks/999", "DELETE")).status, 404);
   });
+
+  it("exports selected tasks as a text file without changing them", async () => {
+    const a = await (await json("/api/tasks", "POST", { title: "alpha" })).json();
+    const b = await (await json("/api/tasks", "POST", { title: "beta" })).json();
+    await json(`/api/tasks/${b.id}`, "PATCH", { done: true });
+    const before = await (await fetch(`${base}/api/tasks`)).json();
+
+    const res = await json("/api/tasks/export", "POST", { ids: [b.id, a.id] });
+    assert.equal(res.status, 200);
+    assert.match(res.headers.get("content-disposition"), /attachment; filename="tasks.txt"/);
+    assert.equal(await res.text(), "[x] beta\n[ ] alpha\n");
+
+    assert.deepEqual(await (await fetch(`${base}/api/tasks`)).json(), before);
+  });
+
+  it("export rejects missing or empty ids with 400", async () => {
+    assert.equal((await json("/api/tasks/export", "POST", {})).status, 400);
+    assert.equal((await json("/api/tasks/export", "POST", { ids: [] })).status, 400);
+    assert.equal((await json("/api/tasks/export", "POST", { ids: "1" })).status, 400);
+  });
+
+  it("export returns 404 with no file for an unknown id", async () => {
+    const t = await (await json("/api/tasks", "POST", { title: "gamma" })).json();
+    const res = await json("/api/tasks/export", "POST", { ids: [t.id, 99999] });
+    assert.equal(res.status, 404);
+    assert.equal(res.headers.get("content-disposition"), null);
+    assert.ok((await res.json()).error);
+  });
 });

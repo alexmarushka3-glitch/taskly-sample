@@ -1,6 +1,6 @@
 import express from "express";
 import { fileURLToPath } from "node:url";
-import { addTask, deleteTask, listTasks, updateTask } from "./db.js";
+import { addTask, deleteTask, getTasksByIds, listTasks, updateTask } from "./db.js";
 
 const publicDir = fileURLToPath(new URL("../public", import.meta.url));
 
@@ -16,6 +16,20 @@ export function createApp(db) {
     const title = typeof req.body?.title === "string" ? req.body.title.trim() : "";
     if (!title) return res.status(400).json({ error: "title is required" });
     res.status(201).json(addTask(db, title));
+  });
+
+  app.post("/api/tasks/export", (req, res) => {
+    const ids = req.body?.ids;
+    if (!Array.isArray(ids) || ids.length === 0 || !ids.every((n) => Number.isInteger(n))) {
+      return res.status(400).json({ error: "ids must be a non-empty array of numbers" });
+    }
+    const unique = [...new Set(ids)];
+    const byId = new Map(getTasksByIds(db, unique).map((t) => [t.id, t]));
+    if (byId.size !== unique.length) return res.status(404).json({ error: "one or more tasks not found" });
+    const text = ids.map((id) => `[${byId.get(id).done ? "x" : " "}] ${byId.get(id).title}`).join("\n") + "\n";
+    res.set("Content-Type", "text/plain; charset=utf-8");
+    res.set("Content-Disposition", 'attachment; filename="tasks.txt"');
+    res.send(text);
   });
 
   app.patch("/api/tasks/:id", (req, res) => {

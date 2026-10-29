@@ -20,6 +20,13 @@ export function listTasks(db) {
   return db.prepare("SELECT * FROM tasks ORDER BY created_at DESC, id DESC").all();
 }
 
+/** Read-only: rows matching the given ids (any order, unknown ids omitted). */
+export function getTasksByIds(db, ids) {
+  if (!ids.length) return [];
+  const marks = ids.map(() => "?").join(",");
+  return db.prepare(`SELECT * FROM tasks WHERE id IN (${marks})`).all(...ids);
+}
+
 export function addTask(db, title) {
   const created_at = new Date().toISOString();
   const { lastInsertRowid } = db.prepare("INSERT INTO tasks (title, done, created_at) VALUES (?, 0, ?)").run(title, created_at);
